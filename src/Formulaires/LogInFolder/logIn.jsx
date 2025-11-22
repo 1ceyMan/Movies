@@ -1,43 +1,27 @@
 import './LogIn.css';
-import { useContext, useState, useEffect } from 'react';
+
+import { useContext,useState,useEffect, useRef } from 'react';
 import { context } from '../../App.jsx';
+import { useValidatEmail, useValidatPassword } from '../validation.js';
 
 const LogIn = () => {
 
-  const { isFormValid, setIsFormValid } = useContext(context);
-  const { HaveAccount, setIsHaveAccount } = useContext(context);
-  const [errors, setErrors] = useState({});
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+    const {isFormValid,setIsForgetPassword,setIsFormValid} = useContext(context);
+    const {HaveAccount,setIsHaveAccount} = useContext(context);
+    const [errors, setErrors] = useState({});
+    const email = useRef();
+    const password = useRef();
 
-  const validateEmail = () => {
-    if (email.trim() === '') {
-      setErrors(prev => ({ ...prev, email: "Invalide required" }))
-      setIsFormValid(false)
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
-      return "Email is required";
-    } else if (!emailRegex.test(email)) {
-      setErrors(prev => ({ ...prev, email: "Invalide email Format" }))
-      setIsFormValid(false)
-      return;
-    }
-    setIsFormValid(true);
-    setErrors(prev => ({ ...prev, email: "" }))
-  }
-  const validatePassword = () => {
-    if (password.trim() === "") {
-      setErrors(prev => ({ ...prev, password: "password required" }))
-      setIsFormValid(false)
-      return;
-    }
-    if (password.length < 6) {
-      setErrors(prev => ({ ...prev, password: "password should be more than 6 caracters" }))
-      setIsFormValid(false)
-      return;
+    const validateCheckbox = ()=>{
+      const ischeked = document.getElementById('terms').checked;
+      if(!ischeked){
+        setErrors(prev=>({...prev,ischeked:"you must accept terms"}))
+        setIsFormValid(false)
+        return false;
+      }
+      setIsFormValid(true);
+      setErrors(prev=>({...prev,ischeked:""}))
+      return true;
     }
     setIsFormValid(true);
     setErrors(prev => ({ ...prev, password: "" }))
@@ -55,12 +39,22 @@ const LogIn = () => {
   }
 
 
-  const validateForm = (e) => {
-    e.preventDefault();
-    validateEmail()
-    validatePassword();
-    validateCheckbox();
-  }
+     const validateForm = (e)=>{
+      e.preventDefault();
+      let isEmailValide = useValidatEmail(email.current.value);
+      if(isEmailValide.trim()!=="")
+        setErrors(prev=>({...prev,email:isEmailValide}))
+      else
+        setErrors(prev=>({...prev,email:""}))
+      let isValidePassword = useValidatPassword(password.current.value);
+      if(isValidePassword.trim()!=="")
+        setErrors(prev=>({...prev,password:isValidePassword}))
+      else
+        setErrors(prev=>({...prev,password:""}))
+      let isCheked = validateCheckbox();
+      if(isEmailValid.trim()==="" && isPasswordValide.trim()==="" && isCheked)
+        setIsFormValid(true);
+    }
 
   return (
     <div className="container LogIn py-5">
@@ -79,13 +73,13 @@ const LogIn = () => {
 
             <div className="mb-3">
               <label htmlFor="email" className="form-label">Email :</label>
-              <input onChange={(e) => setEmail(e.target.value)} id="email" type="email" className="form-control" placeholder="Your email" />
+              <input ref={email} id="email" type="email" className="form-control" placeholder="Your email" />
               {errors.email && <p className='text-danger'>{errors.email}</p>}
             </div>
 
             <div className="mb-3">
               <label htmlFor="password" className="form-label">Password :</label>
-              <input id="password" onChange={e => setPassword(e.target.value)} type="password" className="form-control" placeholder="Your password" />
+              <input id="password" ref={password} type="password" className="form-control" placeholder="Your password" />
               {errors.password && <p className='text-danger'>{errors.password}</p>}
             </div>
 
@@ -97,7 +91,7 @@ const LogIn = () => {
               {errors.ischeked && <p className='text-danger'>{errors.ischeked}</p>}
             </div>
 
-            <p className="text-primary small mb-3" style={{ cursor: "pointer" }}>
+            <p onClick={()=>setIsForgetPassword(true)} className="text-primary small mb-3" style={{ cursor: "pointer" }}>
               Forgot password?
             </p>
             <p id='create' onClick={() => setIsHaveAccount(false)} className='text-primary small mb-3'>
